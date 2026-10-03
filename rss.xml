@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>LLM折磨记录</title>
+    <link>https://amarillonmc.github.io/llm-journey</link>
+    <description>……并不是真的在折磨LLM</description>
+    <language>zh-CN</language>
+    <generator>GitPress</generator>
+    <item>
+      <title>你好,世界</title>
+      <link>https://amarillonmc.github.io/llm-journey/posts/hello-world/</link>
+      <guid>https://amarillonmc.github.io/llm-journey/posts/hello-world/</guid>
+      <pubDate>Sat, 03 Oct 2026 14:26:14 GMT</pubDate>
+      <description>我在 GitPress 上的第一篇文章。</description>
+    </item>
+  </channel>
+</rss>

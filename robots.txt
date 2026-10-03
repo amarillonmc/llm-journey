@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://amarillonmc.github.io/llm-journey/sitemap.xml
