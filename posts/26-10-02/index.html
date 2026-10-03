@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="zh-CN" style="--accent: #f59e0b"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>26-10-02 — LLM折磨记录</title><meta name="description" content="……并不是真的在折磨LLM"><meta name="generator" content="GitPress"><link rel="canonical" href="https://amarillonmc.github.io/llm-journey/posts/26-10-02/"><meta property="og:type" content="article"><meta property="og:title" content="26-10-02 — LLM折磨记录"><meta property="og:description" content="……并不是真的在折磨LLM"><meta property="og:url" content="https://amarillonmc.github.io/llm-journey/posts/26-10-02/"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="26-10-02 — LLM折磨记录"><meta name="twitter:description" content="……并不是真的在折磨LLM"><meta property="article:published_time" content="2026-10-03T15:10:27.000Z"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"26-10-02","description":"……并不是真的在折磨LLM","datePublished":"2026-10-03T15:10:27.000Z","url":"https://amarillonmc.github.io/llm-journey/posts/26-10-02/","author":{"@type":"Person","name":"Nemo Ma"}}</script><link rel="alternate" type="application/rss+xml" title="LLM折磨记录" href="/llm-journey/rss.xml"><link rel="stylesheet" href="/llm-journey/_astro/_page_.BPtQ_mnu.css"><script id="gitpress-build-check">(function(){var BUILD_ID="38f925fa9f8e";var META="/llm-journey/gitpress-build.json";var SW="/llm-journey/sw.js";var SCOPE="/llm-journey/";try{if("serviceWorker"in navigator)navigator.serviceWorker.register(SW,{scope:SCOPE});}catch(e){}fetch(META+(META.indexOf("?")>=0?"&":"?")+"t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(meta){if(!meta||!meta.id||meta.id===BUILD_ID)return;var key="gp-bust:"+meta.id;try{if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,"1");}catch(e){}if(typeof caches!=="undefined"){caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).finally(function(){location.reload();});}else{location.reload();}}).catch(function(){});})();</script></head> <body> <header class="site-header" data-pagefind-ignore> <div class="site-brand">  <div class="site-brand-copy">  <p class="site-title"> <a href="/llm-journey/">LLM折磨记录</a> </p> </div> </div> <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox"> <label for="nav-toggle" class="nav-toggle-label" aria-label="Toggle menu"> <span></span><span></span><span></span> </label> <p class="site-tagline">……并不是真的在折磨LLM</p> <nav class="site-nav"> <a href="/llm-journey/"> 首页 </a><a href="/llm-journey/categories/c/"> OpenAI系 </a><a href="/llm-journey/categories/g/"> Gemini系 </a><a href="/llm-journey/categories/d/"> 国产AI系 </a><a href="/llm-journey/categories/q/"> 其他非LLM </a><a href="/llm-journey/categories/q-2/"> 其他 </a><a href="/llm-journey/about/"> 关于 </a><a href="/llm-journey/search/"> 搜索 </a> </nav> </header> <main class="site-main">  <article> <div data-pagefind-body> <header class="article-header"> <p class="post-meta"> 2026年10月3日 23:10:27  </p> <h1>26-10-02</h1> </header>  <div class="prose"> <p>USER：</p>
+<p>就在这台Windows Server独立服务器上，这几天RDP剪贴板功能突然失效了。外见表象即无法通过宿主机复制→本机粘贴的手段移动文件，反过来也同样不成立。</p>
+<p>我在进行连接时已经选中了共享剪贴板的选项。且已经尝试重新连接。</p>
+<p>我本机同时连接着多个RDP，甚至有个RDP中还在连接另一个RDP，都共享了剪贴板，我甚至可以在宿主机中复制，在RDP中的RDP里面将内容正常粘贴。</p>
+<p>这台机器的rdpclip.exe的确正在运行。</p>
+<p>何故？</p>
+<p>GPT：</p>
+<p><strong>从你描述的情况看，我会首先怀疑“这台服务器当前会话的剪贴板同步卡住”，其次才是“文件传输被单独限制”。</strong> 目前没有理由把它简单归结为“RDP 开得太多”，也不需要先重启整台服务器。</p>
+<p>你已经检查的几项，并不能完全排除这两种问题：</p>
+<p><code>rdpclip.exe</code> <strong>还在，不代表它仍在正常同步。</strong> 微软问答中有与你很接近的实际报告：进程仍然存在，但剪贴板不再同步，结束并重新启动它后恢复。因此，“确认它正在运行”和“重新初始化它”是两回事。<a href="https://learn.microsoft.com/en-us/answers/questions/454562/copy-paste-stops-working-after-sometime-on-mstsc?utm_source=chatgpt.com">Microsoft Learn</a></p>
+<p><strong>断开后重连，也不等于重新创建用户会话。</strong> Windows 会保留断开会话中的程序；重新连接可能只是回到原来的桌面和进程状态。因此，你已经尝试重连，却没有恢复，并不奇怪。<a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tsdiscon">Microsoft Learn</a></p>
+<p>另外，你目前明确描述的是<strong>文件</strong>无法复制，尚不能确定普通文字是否也受影响——这是下面排查中最重要的分界。</p>
+<h2 id="一先分清只有文件不行还是文字也不行">一、先分清：只有文件不行，还是文字也不行？</h2>
+<p>在本机和这台服务器上各打开一个记事本，尝试双向复制一小段新输入的普通文字。然后，使用资源管理器，双向复制一个桌面上的小 <code>.txt</code> 文件。</p>
+<p>测试文件尽量只有几 KB，复制到另一端的桌面即可，暂时不要用大型备份、压缩包内部的文件或受保护的系统目录。</p>
+<p>测试结果优先排查方向跨 RDP 的文字、文件都不行，但两端各自内部复制正常当前会话的剪贴板同步状态、该连接的客户端状态、剪贴板禁用策略文字正常，只有文件不行文件重定向策略、文件传输状态小文件正常，只有大文件不行文件大小限制，而不一定是剪贴板整体故障服务器内部的记事本之间也不能复制文字排查范围应扩大到该用户会话本身，而不只是 RDP</p>
+<p>之所以必须区分，是因为微软明确说明：<strong>服务器策略禁止“驱动器重定向”时，也会禁止通过剪贴板复制文件，但普通文字和图片不受这个策略影响。</strong> 所以，“勾选了共享剪贴板”并不必然意味着文件复制也被允许。<a href="https://learn.microsoft.com/en-us/azure/virtual-desktop/redirection-configure-drives-storage">Microsoft Learn</a></p>
+<h2 id="二第一项修复只重启当前会话的-rdpclipexe">二、第一项修复：只重启当前会话的 <code>rdpclip.exe</code></h2>
+<p>这一步最值得先试。<strong>在出问题的服务器桌面内，以当前登录用户打开普通 PowerShell</strong>，执行：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span># 获取当前 PowerShell 所在的用户会话</span></span>
+<span class="line"><span>$sessionId = (Get-Process -Id $PID).SessionId</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># 只结束当前会话的 RDP 剪贴板进程，不动其他会话</span></span>
+<span class="line"><span>Get-Process -Name rdpclip -ErrorAction SilentlyContinue |</span></span>
+<span class="line"><span>    Where-Object { $_.SessionId -eq $sessionId } |</span></span>
+<span class="line"><span>    Stop-Process -Force -ErrorAction Stop</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Start-Sleep -Milliseconds 500</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># 在当前会话中重新启动</span></span>
+<span class="line"><span>Start-Process "$env:WINDIR\System32\rdpclip.exe"</span></span></code></pre>
+<p>执行完毕后，<strong>重新复制一段文字，再重新复制那个小文件</strong>，测试双向传输。</p>
+<p>这段命令只操作当前会话中的 <code>rdpclip.exe</code>，不重启 IIS、MySQL 或远程桌面服务，也不结束其他会话的剪贴板进程。结束并重新启动 <code>rdpclip.exe</code> 本身也是微软支持回复给出的排查方法。<a href="https://learn.microsoft.com/en-nz/answers/questions/4312043/copy-and-paste-doesn-t-work-when-opened-remoteapp?utm_source=chatgpt.com">Microsoft Learn</a></p>
+<p>若连文字也无法粘贴进去，可以直接在服务器里打开任务管理器，结束<strong>属于你当前会话</strong>的 <code>rdpclip.exe</code>，然后通过“文件 → 运行新任务”输入：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>rdpclip.exe</span></span></code></pre>
+<p><strong>不要只再启动一次而不结束旧进程；这里要做的是重建它的运行状态。</strong></p>
+<p>如果这一步立即恢复，便支持“会话内运行状态异常”这个判断，而不是简单的配置禁用；但还不能仅凭恢复，就认定最初究竟是哪一个程序或操作触发了异常。</p>
+<h2 id="三若文字正常文件仍然失败检查这两个策略">三、若文字正常、文件仍然失败，检查这两个策略</h2>
+<p>在<strong>服务器上</strong>执行以下只读查询：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fDisableClip</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fDisableCdm</span></span></code></pre>
+<p>对应含义如下：</p>
+<p>项目显示为 <code>0x1</code> 时的含义<code>fDisableClip</code>禁止剪贴板重定向<code>fDisableCdm</code>禁止驱动器重定向，同时会禁止剪贴板文件复制</p>
+<p>这两个值对应的策略名称和注册表位置，分别列在微软的剪贴板及驱动器重定向策略文档中。<a href="https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-admx-terminalserver">Microsoft Learn</a></p>
+<p>若显示“找不到指定的注册表项或值”，<strong>不代表故障</strong>，只是这个位置没有显式配置该项；也不能据此断言所有层面的重定向设置都正常。</p>
+<p>图形界面可以运行 <code>gpedit.msc</code>，进入：</p>
+<blockquote>
+<p>计算机配置 → 管理模板 → Windows 组件 → 远程桌面服务 → 远程桌面会话主机 → 设备和资源重定向</p>
+</blockquote>
+<p>重点查看：</p>
+<ul>
+<li><strong>不允许剪贴板重定向</strong></li>
+<li><strong>不允许驱动器重定向</strong></li>
+</ul>
+<p>若其中某项被启用，而且不是你有意设置的限制，再从对应的策略来源修改。允许这些功能时，这两个“<strong>不允许……</strong>”策略应为“<strong>已禁用</strong>”或没有其他上级限制的“未配置”，注意这里的双重否定。<a href="https://learn.microsoft.com/en-us/azure/virtual-desktop/redirection-configure-clipboard">Microsoft Learn</a></p>
+<p>还有一项容易被旧教程漏掉：支持较新剪贴板控制功能的系统，还可能配置了<strong>按方向、按数据类型限制</strong>的策略，即 <code>CSClipLevel</code>、<code>SCClipLevel</code>，并且可以来自计算机或当前用户配置。它们能造成“文字允许、文件不允许”；<strong>不要照着其他禁用开关的思路把它们一律改成</strong> <code>0</code><strong>，因为这里的</strong> <code>0</code> <strong>表示禁止该方向的剪贴板传输。</strong> <a href="https://learn.microsoft.com/en-us/azure/virtual-desktop/clipboard-transfer-direction-data-types">Microsoft Learn</a></p>
+<p>目前先查询即可，不建议直接批量改注册表，更不要删除整个 <code>Terminal Services</code> 策略键。</p>
+<h2 id="四多连接和嵌套-rdp做隔离测试但不要直接认定它们是原因">四、多连接和嵌套 RDP：做隔离测试，但不要直接认定它们是原因</h2>
+<p>你已有“本机 → RDP → 内层 RDP”可以正常复制的实测，因此，<strong>“存在多连接或嵌套”本身不是足够的故障解释。</strong></p>
+<p>但其他连接正常，也只能说明它们正常，不能证明这台服务器对应的连接状态没有问题。若第二步没有修好，可以做一次对照实验：</p>
+<p>临时断开其他 RDP，包括内层连接，<strong>不是注销那些服务器的用户</strong>；只保留本机直连这台故障服务器。随后重新执行一次当前会话的 <code>rdpclip</code> 重启，再测试文字和小文件。断开会话与注销不同，前者会保留会话中的运行程序。<a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tsdiscon">Microsoft Learn</a></p>
+<p>如果单连接时恢复，再逐个恢复其他连接，观察故障是否随某一个连接重新出现。如果单连接仍失败，就没有必要继续把重点放在“开了太多 RDP”上。</p>
+<p><strong>这里不建议一刀切执行</strong> <code>taskkill /IM mstsc.exe /F</code><strong>，也不建议重启服务器的</strong> <code>TermService</code><strong>。</strong> 对你这种同时维护多个远程桌面、服务器上又跑着实际业务的情况，先把操作范围限制在目标连接和当前会话更合适。</p>
+<h2 id="五你最近在做备份还要排除大文件看起来像剪贴板失效">五、你最近在做备份，还要排除“大文件看起来像剪贴板失效”</h2>
+<p>假如失败对象主要是刚生成的大型 <code>.7z</code>、<code>.sql</code> 文件，而几 KB 的测试文件正常，就要注意另一个独立问题：</p>
+<p><strong>微软文档列明，传统 RDP 剪贴板方式复制超过 2 GB 的文件可能直接失败，而且不显示错误。</strong> 这不等于整个共享剪贴板坏了。<a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/remote/copying-2-gb-file-by-clipboard-redirection-fails">Microsoft Learn</a></p>
+<p>这种情况下，可以在连接选项中进入：</p>
+<blockquote>
+<p>本地资源 → 详细信息 → 驱动器</p>
+</blockquote>
+<p>只勾选需要传文件的本地磁盘，重新连接后，在服务器资源管理器中访问：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>\\tsclient\</span></span></code></pre>
+<p>例如重定向了本机 C 盘，就可以通过：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>\\tsclient\C\</span></span></code></pre>
+<p>访问本地文件，再在服务器内通过该路径复制。微软也将驱动器重定向列为大文件传输的替代方法。<strong>不过，它仍然受前面“禁止驱动器重定向”策略的约束。</strong> <a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/remote/copying-2-gb-file-by-clipboard-redirection-fails">Microsoft Learn</a></p>
+<hr>
+<p><strong>就你目前的描述，最先该做的不是重装、重启或停掉 Defender，而是第二节：结束并重建当前会话的</strong> <code>rdpclip.exe</code><strong>。</strong> “它确实正在运行”恰好还没有排除这一类故障。</p>
+<p>接下来最有判别力的反馈是：<strong>重启它后是否恢复，以及普通文字和几 KB 小文件分别能否双向复制</strong>；若只有文件失败，再看两个策略查询的输出。</p>
+<p>USER：</p>
+<p>执行完二后，恢复正常。之前也是文本可以但文件不行，现在文件也可以了。</p>
+<p>顺便一说，两项注册表键值都输出ERROR: The system was unable to find the specified registry key or value.</p>
+<p>GPT：</p>
+<p><strong>这下基本定位到故障层面了：更符合“当前 RDP 会话中文件剪贴板重定向的临时状态异常”，而不是配置没有打开。</strong> 关键证据是你没有更改任何策略，只重启了 <code>rdpclip.exe</code>，文件传输便恢复了。</p>
+<p>不过，这能定位到“哪一层出了问题”，还不能确定最初的触发原因，更不能直接认定是多层 RDP、某次更新或某个程序导致的。</p>
+<h3 id="两个注册表查询报错不需要处理">两个注册表查询报错，不需要处理</h3>
+<p>这里的：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ERROR: The system was unable to find the specified registry key or value.</span></span></code></pre>
+<p>意思只是：<strong>在查询的注册表位置，没有找到指定的键或值。</strong> 它不是在报告“RDP 组件损坏”或者“系统缺少必要配置”。<code>reg query</code> 本身就是查询命令，指定目标不存在时会查询失败。<a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/reg-query">Microsoft Learn</a></p>
+<p>所以，对你这次查询，准确理解是：<strong>那个计算机级策略路径下没有显式设置这两个值</strong>，而不是“需要把它们补上”。Windows 本身默认不阻止剪贴板及驱动器重定向，相应的“不允许……”策略也支持保持“未配置”。<a href="https://learn.microsoft.com/en-us/azure/virtual-desktop/redirection-configure-clipboard">Microsoft Learn</a></p>
+<p>严格说，缺少这两个值不能单独证明所有其他配置来源都没有限制；但结合你现在已经恢复双向文件复制的实测，<strong>目前没有必要继续修改注册表或组策略，保持原样即可。</strong></p>
+<h3 id="文字能复制文件不能复制也可能是运行状态故障">“文字能复制、文件不能复制”，也可能是运行状态故障</h3>
+<p>这个补充也很重要，我上一条的排查表需要加一个限定：</p>
+<blockquote>
+<p><strong>文字正常、文件失败时，应当检查文件相关限制，但不能仅凭这个症状就认定是策略问题。</strong></p>
+</blockquote>
+<p>微软确实明确区分了这两类行为，例如禁止驱动器重定向可以阻止剪贴板文件传输，却不影响文字或图片。也就是说，“文字正常”并不能证明文件相关功能同样正常。<a href="https://learn.microsoft.com/en-us/azure/virtual-desktop/redirection-configure-drives-storage">Microsoft Learn</a></p>
+<p>而你的实际结果进一步说明：<strong>至少这一次，文件复制故障可以通过重新初始化</strong> <code>rdpclip.exe</code> <strong>恢复，即使它此前还活着、文字复制也正常。</strong> 因而用“整个进程完全卡死”来描述也不够准确，更合适的是“文件重定向相关状态异常”。</p>
+<p><strong>现在可以停在这里，不用继续折腾服务器。</strong> 留着第二步那段“只重启当前会话 <code>rdpclip.exe</code>”的脚本作为手动恢复手段即可；若之后频繁复发，再记录复发前的具体操作来追查触发条件，而不是先动全局配置。</p> </div> </div>   </article>  </main> <footer class="site-footer" data-pagefind-ignore> <ul class="site-footer-list"> <li> <span>© 2026 LLM折磨记录</span> </li><li> <a href="https://gitpress.net" target="_blank" rel="generator">  由 GitPress 驱动 </a> </li><li> <a href="https://github.com/tap6/gitpress" target="_blank" rel="noopener noreferrer">  主题 Ink </a> </li><li> <a href="/llm-journey/rss.xml">  RSS </a> </li> </ul> </footer> </body></html>
